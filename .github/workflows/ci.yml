@@ -1,0 +1,122 @@
+name: CI
+
+# Lightweight checks that need no API tokens and no network access to the
+# repositories being harvested: every module has to import cleanly, the shared
+# search vocabulary has to match the paper, and no credentials may be committed.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyflakes
+
+      - name: Compile every module
+        run: python -m compileall -q . -x '\.venv|\.git'
+
+      - name: Lint with pyflakes
+        run: python -m pyflakes $(git ls-files '*.py')
+
+      - name: Check the shared search vocabulary against Table 1 of the paper
+        run: |
+          python - <<'PY'
+          import query_specs as q
+          assert len(q.PLATFORMS) == 23, f"expected 23 platform terms, got {len(q.PLATFORMS)}"
+          assert len(q.TEXT_TERMS) == 28, f"expected 28 content terms, got {len(q.TEXT_TERMS)}"
+          assert q.MIN_SIZE_BYTES == 10 * 1024
+          assert q.MIN_CREATED_DATE == "2010-01-01"
+          assert q.is_relevant_file("posts.csv")
+          assert not q.is_relevant_file("README.txt")
+          assert not q.is_relevant_file("paper.pdf")
+          print("search vocabulary OK")
+          PY
+
+      - name: Check the common output schema
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          import harvest_common as h
+
+          assert h.OUTPUT_COLUMNS == [
+              "id", "doi", "url", "updated", "title", "description",
+              "language", "total_file_size", "file_types",
+          ]
+
+          # standardise() must produce the same columns from any input shape.
+          a = h.standardise(pd.DataFrame({"identifier": ["x"], "abstract": ["t"]}),
+                            {"identifier": "id", "abstract": "description"})
+          b = h.standardise(pd.DataFrame())
+          assert list(a.columns) == list(b.columns) == h.OUTPUT_COLUMNS
+
+          # finalise() must drop records that fail any single criterion.
+          df = pd.DataFrame({
+              "id": ["keep", "small", "old", "nodesc"],
+              "doi": [""] * 4,
+              "url": ["u"] * 4,
+              "updated": ["2023-01-01", "2023-01-01", "2001-01-01", "2023-01-01"],
+              "title": ["A", "B", "C", "D"],
+              "description": ["an english dataset"] * 3 + [""],
+              "language": ["en"] * 4,
+              "total_file_size": [50000, 10, 50000, 50000],
+              "file_types": ["csv"] * 4,
+          })
+          out = h.finalise(df, apply_language_filter=False)
+          assert list(out["id"]) == ["keep"], list(out["id"])
+          print("output schema OK")
+          PY
+
+      - name: Every harvesting script exposes the shared interface
+        run: |
+          python - <<'PY'
+          import ast, pathlib, sys
+
+          required = {"search_all", "main"}
+          failures = []
+          for path in sorted(pathlib.Path("harvesting").glob("*.py")):
+              tree = ast.parse(path.read_text(encoding="utf-8"))
+              names = {n.name for n in tree.body
+                       if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))}
+              missing = required - names
+              if missing:
+                  failures.append(f"{path.name}: missing {sorted(missing)}")
+              if not ({"search_records", "harvest_records"} & names):
+                  failures.append(f"{path.name}: no search_records/harvest_records")
+
+          if failures:
+              sys.exit("\n".join(failures))
+          print("harvesting interface OK")
+          PY
+
+      - name: No credentials committed
+        run: |
+          if git ls-files --error-unmatch .env >/dev/null 2>&1; then
+            echo "::error::.env is tracked by git — remove it and rotate the tokens"
+            exit 1
+          fi
+          if git grep -nIE '(token|api[_-]?key|secret|password)[[:space:]]*=[[:space:]]*.[A-Za-z0-9_-]{16,}' -- '*.py' '*.R'; then
+            echo "::error::possible hard-coded credential"
+            exit 1
+          fi
+          echo "no credentials found"

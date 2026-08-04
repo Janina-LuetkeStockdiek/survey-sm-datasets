@@ -1,0 +1,36 @@
+# Python dependencies for the harvesting, merging and classification steps.
+# The analysis step (feature_analysis.R) uses R; see code/README.md.
+#
+#   pip install -r requirements.txt
+#
+# Versions are those used for the data collection reported in the paper.
+# Remove the pins if you want the latest releases.
+
+# --- Core data handling and HTTP -------------------------------------------
+pandas==2.2.3
+numpy==2.1.3
+requests==2.32.3
+urllib3==2.2.3
+python-dotenv==1.0.1
+tqdm==4.67.1
+
+# --- HTML and XML parsing ---------------------------------------------------
+beautifulsoup4==4.12.3      # merge_datasets.py (description cleaning)
+lxml==5.3.0                 # optional: faster BeautifulSoup/XML backend for the
+                            # OAI-PMH harvesters; they fall back to the standard
+                            # library parser if it is absent
+
+# --- Language identification ------------------------------------------------
+# Requires the lid.176.bin model, downloaded separately; see README.
+fasttext==0.9.3
+
+# --- Repository-specific clients --------------------------------------------
+kaggle==1.6.17              # harvesting/kaggle_api.py
+huggingface_hub==0.26.5     # harvesting/huggingface_api.py
+curl_cffi==0.7.4            # harvesting/mendeley_oai.py (Cloudflare-friendly)
+python-dateutil==2.9.0      # harvesting/mendeley_oai.py (relativedelta)
+
+# --- LLM classification and evaluation --------------------------------------
+openai==1.59.3              # label_relevant.py (OpenAI-compatible endpoints)
+scikit-learn==1.6.0         # label_relevant.py (metrics)
+openpyxl==3.1.5             # label_relevant.py (Excel input/output)

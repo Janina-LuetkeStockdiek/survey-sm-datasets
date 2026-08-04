@@ -1,0 +1,25 @@
+# Credentials — never commit
+.env
+
+# fastText language-identification model (~130 MB, download separately)
+*.bin
+
+# Harvest output, caches and logs
+data/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+
+# OS
+.DS_Store
+Thumbs.db

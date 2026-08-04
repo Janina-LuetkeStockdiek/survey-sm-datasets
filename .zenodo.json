@@ -1,0 +1,61 @@
+{
+  "_comment": [
+    "Metadata Zenodo applies when it archives a GitHub release of this repository.",
+    "It overrides what Zenodo would otherwise infer from the repository itself.",
+    "BEFORE THE FIRST PUBLIC RELEASE, replace every PLACEHOLDER: creators (real",
+    "names, affiliations, ORCIDs), the related_identifiers for the paper and the",
+    "data record, and any grant information. Zenodo ignores keys starting with an",
+    "underscore, so this comment is safe to leave in place."
+  ],
+
+  "title": "Social Media Dataset Survey — Pipeline",
+
+  "description": "<p>Pipeline for a data-centric survey of publicly available, English, text-based social media datasets, accompanying the paper <em>A Survey on Publicly Available Text-Based English Social Media Datasets From Online Data Sharing Repositories</em>.</p><p>The code queries fourteen open data repositories &mdash; Kaggle, Zenodo, GitHub, Figshare, Hugging Face, Dryad, OSF, Harvard Dataverse, Science Data Bank, data.gov, the EU Open Data Portal, Mendeley Data, CESSDA and Research Data Australia &mdash; via their REST APIs or, where none exists, via OAI-PMH. It then deduplicates the results, classifies relevance with an LLM validated against human annotation, and reproduces the exploratory analysis reported in the paper.</p><p>The pipeline has four steps: one harvesting script per repository, all sharing a common output schema; a merge and deduplication step; an LLM classification and evaluation step; and an analysis step in R producing every figure in the paper.</p><p>The catalogue this code produced &mdash; 1,997 hand-annotated datasets drawn from 7,291 retrieved records &mdash; is published as a separate Zenodo record; see the related identifiers.</p>",
+
+  "upload_type": "software",
+  "license": "MIT",
+  "access_right": "open",
+  "language": "eng",
+
+  "creators": [
+    {
+      "name": "PLACEHOLDER, Anonymised for double-blind review"
+    }
+  ],
+
+  "keywords": [
+    "social media",
+    "datasets",
+    "data repositories",
+    "post-API",
+    "data sharing",
+    "FAIR principles",
+    "research data management",
+    "open data",
+    "metadata harvesting",
+    "OAI-PMH",
+    "computational social science",
+    "large language models",
+    "text classification"
+  ],
+
+  "related_identifiers": [
+    {
+      "_comment": "The catalogue this code produces.",
+      "identifier": "10.5281/zenodo.PLACEHOLDER",
+      "relation": "isSupplementTo",
+      "resource_type": "dataset",
+      "scheme": "doi"
+    }
+  ],
+
+  "_related_identifiers_to_add_after_acceptance": [
+    {
+      "_comment": "Add the paper once it has a DOI. Adding it while the manuscript is under double-blind review may deanonymise you.",
+      "identifier": "PLACEHOLDER — paper DOI",
+      "relation": "isSupplementTo",
+      "resource_type": "publication-article",
+      "scheme": "doi"
+    }
+  ]
+}

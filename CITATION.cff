@@ -1,0 +1,70 @@
+# Citation metadata for this repository.
+# GitHub renders this as a "Cite this repository" button, and Zenodo reads it
+# when archiving a release.
+#
+# BEFORE THE FIRST PUBLIC RELEASE, replace every PLACEHOLDER below:
+#   - authors: real names, affiliations and ORCIDs
+#   - repository-code: the GitHub URL
+#   - identifiers: the Zenodo concept DOI of this repository
+#   - references: the paper DOI and the Zenodo DOI of the data record
+# Until then the placeholders keep the file valid without naming anyone, so the
+# repository can be prepared while the manuscript is under double-blind review.
+
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite both the paper and this repository.
+title: "Social Media Dataset Survey — Pipeline"
+abstract: >-
+  Pipeline for a data-centric survey of publicly available, English, text-based
+  social media datasets. Queries fourteen open data repositories via REST APIs
+  and OAI-PMH, filters the results with an LLM classifier validated against human
+  annotation, and reproduces the exploratory analysis reported in the paper.
+type: software
+version: 1.0.0
+date-released: "2026-08-04"
+license: MIT
+
+authors:
+  - name: "PLACEHOLDER — anonymised for double-blind review"
+    # given-names: ""
+    # family-names: ""
+    # affiliation: ""
+    # orcid: "https://orcid.org/0000-0000-0000-0000"
+
+repository-code: "PLACEHOLDER — https://github.com/<owner>/<repo>"
+
+keywords:
+  - social media
+  - datasets
+  - data repositories
+  - post-API
+  - data sharing
+  - FAIR principles
+  - research data management
+  - computational social science
+  - large language models
+
+# identifiers:
+#   - type: doi
+#     value: "10.5281/zenodo.PLACEHOLDER"
+#     description: Concept DOI for all versions of this repository
+
+references:
+  - type: article
+    title: >-
+      A Survey on Publicly Available Text-Based English Social Media Datasets
+      From Online Data Sharing Repositories
+    authors:
+      - name: "PLACEHOLDER — anonymised for double-blind review"
+    year: 2026
+    # doi: "PLACEHOLDER — paper DOI"
+
+  - type: data
+    title: >-
+      A Catalogue of Publicly Available English Text-Based Social Media Datasets
+      from Fourteen Open Data Repositories
+    authors:
+      - name: "PLACEHOLDER — anonymised for double-blind review"
+    year: 2026
+    # doi: "10.5281/zenodo.PLACEHOLDER"
+    notes: The catalogue this code produces, published as a separate Zenodo record.
