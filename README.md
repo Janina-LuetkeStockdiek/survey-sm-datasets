@@ -26,7 +26,7 @@ That reproduces the analysis. Re-running the harvest itself needs API tokens and
 
 | | |
 | --- | --- |
-| Catalogue (Zenodo record) | *DOI to be inserted* |
+| Catalogue (Zenodo record) | https://doi.org/10.5281/zenodo.21704651 |
 | Interactive dashboard | https://sm-datasets-dashboard.netlify.app |
 
 The record holds four files:
