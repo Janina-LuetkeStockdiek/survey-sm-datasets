@@ -58,8 +58,10 @@ X_FALSE_POSITIVE = re.compile(
 
 
 # ----------------------------------------------------------------------------- #
-# HTTP session
+# Parsing helpers
 # ----------------------------------------------------------------------------- #
+_EXT_RE = re.compile(r'\.([A-Za-z0-9]{1,6})(?:\?|#|$)')
+
 
 def _guess_format(dist):
     """Derive a format from mediaType/format, else guess from the URL extension."""

@@ -20,6 +20,14 @@ venv/
 .RData
 .Rproj.user/
 
+# IDE — workspace files carry absolute local paths
+.idea/
+.vscode/
+
 # OS
 .DS_Store
 Thumbs.db
+
+# Dashboard build artefacts
+dashboard/dataset_relevant.csv
+dashboard/site/

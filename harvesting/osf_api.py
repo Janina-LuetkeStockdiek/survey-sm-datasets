@@ -56,7 +56,8 @@ from harvest_common import (
     standardise,
     write_output,
 )
-from query_specs import MIN_CREATED_DATE, PLATFORMS, TEXT_TERMS, is_relevant_file
+from query_specs import (MIN_CREATED_DATE, MIN_SIZE_BYTES, PLATFORMS, TEXT_TERMS,
+                         is_relevant_file)
 from config import data_path, get_token
 
 TROVE_SEARCH = "https://share.osf.io/trove/index-card-search"

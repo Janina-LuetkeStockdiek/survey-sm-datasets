@@ -1,0 +1,60 @@
+# Dockerfile fuer eine lokale F-UJI-Instanz (nativ, auch auf Apple Silicon)
+#
+# Das offizielle Image ghcr.io/pangaea-data-publisher/fuji ist defekt: F-UJI 4.0.0
+# startet beim Hochfahren zwingend einen Playwright-Chromium, aber das Dockerfile
+# des Projekts installiert ihn nie -- der Container beendet sich sofort mit
+# "Executable doesn't exist at /root/.cache/ms-playwright/...". Ausserdem gibt es
+# das Image nur fuer amd64, auf einem ARM-Mac laeuft es also emuliert.
+#
+# Dieses Dockerfile behebt beides und behaelt zusaetzlich die Java-Laufzeit, die
+# das Original nach der Installation wieder entfernt, obwohl Apache Tika sie fuer
+# die Dateiformat-Erkennung braucht.
+#
+# BAUEN (aus dem geklonten fuji-Quellordner heraus):
+#   git clone --depth 1 https://github.com/pangaea-data-publisher/fuji.git
+#   cd fuji
+#   docker build -f /Pfad/zu/Dockerfile.fuji -t fuji-local .
+#
+# STARTEN:
+#   docker run -d --name fuji -p 1071:1071 fuji-local
+
+FROM python:3.13-slim
+
+WORKDIR /usr/src/app
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Java-Laufzeit fuer Apache Tika
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends default-jre-headless \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY README.md pyproject.toml ./
+COPY fuji_server ./fuji_server
+
+RUN pip install --no-cache-dir .
+
+# fehlt im Original-Dockerfile -- ohne diese Zeile stuerzt der Container beim Start ab
+RUN playwright install --with-deps chromium
+
+# Bugfix: sobald ein GitHub-Token hinterlegt ist, liest F-UJI 4.0.0 das Rate-Limit
+# als rate_limit.core / rate_limit.search aus. PyGithub gibt seit 2.7 aber ein
+# RateLimitOverview ohne diese Attribute zurueck -> AttributeError -> HTTP 500 bei
+# JEDER Anfrage mit use_github. Der Aufruf steckt hinter dem verbose-Schalter des
+# GithubHarvester und wird hier abgeschaltet, was nur eine Debug-Ausgabe kostet.
+RUN sed -i "s/verbose=True/verbose=False/" fuji_server/harvester/github_harvester.py
+
+# Bugfix: manche Repositorien liefern Metadaten gzip-komprimiert aus. Der HTTP-Client
+# entpackt sie bereits, der Header Content-Encoding: gzip bleibt aber stehen, und
+# handle_content() ruft gzip.decompress ein zweites Mal auf -> BadGzipFile -> HTTP 500.
+# Die Bedingung prueft jetzt zusaetzlich die gzip-Magic-Bytes (0x1f 0x8b).
+RUN python3 -c "import pathlib; p = pathlib.Path('fuji_server/helper/request_helper.py'); s = p.read_text(); o = 'if self.response.headers.get(\"Content-Encoding\") == \"gzip\":'; n = o[:-1] + ' and self.response.content[:2] == bytes([31, 139]):'; assert s.count(o) == 1, s.count(o); p.write_text(s.replace(o, n))"
+
+# im Container darf der Server nicht nur an localhost lauschen
+RUN sed -i "s|localhost|0.0.0.0|g" ./fuji_server/config/server.ini
+
+EXPOSE 1071
+ENV PYTHONPATH="/usr/src/app"
+
+ENTRYPOINT ["python3"]
+CMD ["-m", "fuji_server", "-c", "/usr/src/app/fuji_server/config/server.ini"]

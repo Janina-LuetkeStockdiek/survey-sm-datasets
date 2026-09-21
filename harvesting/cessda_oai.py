@@ -152,13 +152,11 @@ def harvest_records(
             title = " ".join(_all_txt(dc, "dc:title"))
             descs = _all_txt(dc, "dc:description")
             description = " ".join(descs)
-            creators = _all_txt(dc, "dc:creator")
             rights = _all_txt(dc, "dc:rights")
             subjects = _all_txt(dc, "dc:subject")
             languages = _all_txt(dc, "dc:language")
             ids = _all_txt(dc, "dc:identifier")
             formats = _all_txt(dc, "dc:format")
-            dates = _all_txt(dc, "dc:date")
 
             url = ""
             doi = ""

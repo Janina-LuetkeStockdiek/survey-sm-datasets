@@ -33,4 +33,12 @@ python-dateutil==2.9.0      # harvesting/mendeley_oai.py (relativedelta)
 # --- LLM classification and evaluation --------------------------------------
 openai==1.59.3              # label_relevant.py (OpenAI-compatible endpoints)
 scikit-learn==1.6.0         # label_relevant.py (metrics)
-openpyxl==3.1.5             # label_relevant.py (Excel input/output)
+openpyxl==3.1.5             # label_relevant.py, sampling/ and
+                            # annotation/feature_agreement.py (Excel input/output)
+
+# --- Agreement between the two annotators -----------------------------------
+scipy==1.15.3               # annotation/feature_agreement.py (normal and F
+                            # distributions for the Kappa and ICC intervals)
+
+# fair/fuji_assessment.py and dashboard/build_dashboard_data.py need only
+# pandas and requests, both listed above.

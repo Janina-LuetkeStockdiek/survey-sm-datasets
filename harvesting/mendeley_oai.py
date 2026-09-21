@@ -70,7 +70,6 @@ def _parse_record(record_el) -> Optional[Dict[str, Any]]:
 
     identifier = header.findtext("oai:identifier", default="", namespaces=NS)
     datestamp = header.findtext("oai:datestamp", default="", namespaces=NS)
-    set_specs = [e.text for e in header.findall("oai:setSpec", NS) if e.text]
 
     metadata = record_el.find("oai:metadata", NS)
     if metadata is None:
@@ -86,13 +85,9 @@ def _parse_record(record_el) -> Optional[Dict[str, Any]]:
     creators = collect("creator")
     subjects = collect("subject")
     descriptions = collect("description")
-    publishers = collect("publisher")
-    contributors = collect("contributor")
     dates = collect("date")
-    formats = collect("format")
     identifiers = collect("identifier")
     languages = collect("language")
-    rights = collect("rights")
 
     # extract DOI + URL from identifiers
     doi, url = "", ""

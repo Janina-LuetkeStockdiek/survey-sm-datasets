@@ -17,26 +17,30 @@ source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 python download_data.py            # fetch the catalogue from Zenodo into data/
-Rscript feature_analysis.R         # reproduce the figures from the paper
+Rscript feature_analysis.R         # reproduce the analysis figures
 ```
 
-That reproduces the analysis. Re-running the harvest itself needs API tokens and takes hours; see [Setup](#setup) and the note on reproducibility below.
+That reproduces the analysis. The FAIR assessment in step 4 needs a local F-UJI
+container and takes several hours, so `download_data.py` also fetches its results
+from the Zenodo record. Re-run it only if you want to verify them. Re-running the harvest itself needs API tokens and takes hours; see [Setup](#setup) and the note on reproducibility below.
 
 ## Data
 
 | | |
 | --- | --- |
-| Catalogue (Zenodo record) | https://doi.org/10.5281/zenodo.21704651 |
-| Interactive dashboard | https://sm-datasets-dashboard.netlify.app |
+| Catalogue (Zenodo record) | [10.5281/zenodo.21704651](https://doi.org/10.5281/zenodo.21704651) |
+| Interactive dashboard | https://sm-datasets-dashboard.netlify.app/ |
 
-The record holds four files:
+The record holds these files:
 
 | File | Rows | Content |
 | --- | --- | --- |
 | `dataset_relevant.csv` | 1,997 | The catalogue: bibliographic metadata plus the hand-annotated features |
 | `dataset_initial.csv` | 7,291 | The full harvest before filtering, with LLM votes and exclusion reasons |
+| `fair_assessment.csv` | 1,997 | The F-UJI FAIR assessment of every catalogued dataset |
 | `development_set.csv` | 100 | Human and LLM labels used to develop the classification prompt |
 | `heldout_test_set.csv` | 100 | Untouched sample used for the final performance estimate |
+| the reliability material | 234 + 20 | The annotation codebook, the reliability sample with both annotators' labels, the pilot set, the annotation forms and the agreement results |
 
 `download_data.py` writes them into `data/`, which is git-ignored. The Zenodo
 record's own README documents every column, category and caveat.
@@ -55,9 +59,14 @@ The data are licensed CC BY-NC 4.0; the code in this repository is MIT.
 ├── download_data.py        fetch the published catalogue from Zenodo
 ├── run_harvest.py          (1) orchestrator for the harvesting scripts
 ├── harvesting/             (1) one script per repository
+├── backfill/               (1) creation dates resolved a second time, per repository
 ├── merge_datasets.py       (2) merge harvests, deduplicate, derive platform
 ├── label_relevant.py       (3) LLM relevance classification and evaluation
-├── feature_analysis.R      (4) exploratory analysis and figures
+├── fair/                   (4) FAIR assessment with F-UJI, plus its Dockerfile
+├── feature_analysis.R      (5) exploratory analysis and figures
+├── dashboard/              the interactive Shiny dashboard over the catalogue
+├── sampling/               the three samples, and the blind annotation workbook
+├── annotation/             agreement between the two annotators: Kappa and ICC
 ├── requirements.txt
 ├── .env.example            template for the local .env file
 └── .gitignore
@@ -122,6 +131,33 @@ Every script follows the same shape:
 4. Filter to English, via the repository's own language metadata where available and fastText (`lid.176.bin`) on the description otherwise.
 5. Deduplicate, drop records without a title, description or identifier, and write the result to CSV.
 
+#### Creation dates
+
+The repository APIs disagree about what a date means. Kaggle reports only the last
+update, and for the remaining repositories the creation date was either not offered
+or lost in the merge, so the harvest carries a modification date in `updated`
+throughout. `backfill/` resolves every record a second time and asks its repository
+for the creation date.
+
+```bash
+python3 backfill/fetch_meta_kaggle.py                    # Datasets.csv, about 95 MB
+python3 backfill/backfill_created.py --repos Kaggle --meta-kaggle-dir ~/Downloads/meta-kaggle
+python3 backfill/backfill_created.py --repos all --retry-failed --datacite-fallback
+python3 backfill/apply_created_column.py --report-only   # coverage, writes nothing
+python3 backfill/apply_created_column.py                 # add the `created` column
+```
+
+Kaggle is the exception that needs the extra step: its API exposes no creation date
+at all, so the dates come from an offline join against Meta Kaggle, the platform's
+own metadata dump. Every other repository answers natively, with DataCite as the
+fallback for records that do not.
+
+`backfill_created.py` writes a lookup table and never touches a catalogue file, so
+an interrupted run costs nothing and a rerun continues where it stopped.
+`apply_created_column.py` then inserts `created` directly after `updated` and leaves
+`updated` in place, which keeps every published figure valid until it is deliberately
+recomputed. The catalogue in the Zenodo record already carries the column.
+
 ### 2. Merge and deduplicate
 
 ```bash
@@ -164,7 +200,25 @@ Classification is deliberately tuned for recall (reported as recall and F2 with 
 
 Records surviving this step are then reviewed by hand, which both removes false positives and adds the annotated features.
 
-### 4. Analyse
+### 4. Assess FAIR compliance
+
+```bash
+cd fair
+docker build -f Dockerfile.fuji -t fuji-local .    # from a clone of the F-UJI source
+docker run -d --name fuji -p 1071:1071 --shm-size=1g fuji-local
+python fuji_assessment.py
+```
+
+`fuji_assessment.py` sends every catalogued dataset to a local [F-UJI](https://www.f-uji.net) 4.0.0 instance and collects the FAIRsFAIR metrics `metrics_v0.5`. It writes one row per dataset to `data/fair_fuji.csv`, plus the complete JSON response per dataset under `data/fuji_raw/`. The run is resumable, so `Ctrl-C` costs nothing.
+
+**The project's own Docker image does not work.** F-UJI 4.0.0 starts a Playwright Chromium during application startup, but the upstream Dockerfile never runs `playwright install`, so the container exits immediately with code 3. The same Dockerfile also installs the Java runtime Apache Tika needs and removes it again in the same `RUN` instruction, and the published image exists for amd64 only. `Dockerfile.fuji` fixes all three and builds natively on arm64 as well.
+
+Each row is assessed under the best identifier available: the DOI where one exists, the landing-page URL otherwise. 1,506 of the 1,997 datasets carry no DOI, so their low Findability scores are the finding rather than a measurement error. The column `fuji_identifier` records which identifier was used.
+
+`metrics_v0.5` is deliberately not the newest metric set. The published literature reports v0.5 scores, so these results are comparable to existing work and not to scores produced under a different version.
+
+
+### 5. Analyse
 
 ```bash
 Rscript feature_analysis.R      # or open it in RStudio and run section by section
@@ -173,6 +227,59 @@ Rscript feature_analysis.R      # or open it in RStudio and run section by secti
 Reads `data/dataset_relevant.csv` and reproduces the univariate, bivariate and multivariate figures: bar, lollipop and histogram plots for the marginal distributions; heatmaps with marginal record sums for the cross-tabulations; per-month timelines; a bias-corrected Cramér's V association matrix with Holm-adjusted χ² tests; and adjusted standardised Pearson residual heatmaps.
 
 The script is written for interactive use — each section defines a plotting function and then calls it for the variables shown in the paper. Figures are returned as ggplot objects rather than written to disk, so you can inspect them before saving.
+
+The FAIR section of the script reads `data/fair_fuji.csv` and draws the pass rate per metric and the mean score per repository.
+
+Two figures in the paper are schematics rather than results — the pipeline diagram and the workflow overview. They are drawn separately, carry no data beyond the counts printed on them, and are not part of this repository.
+
+## Dashboard
+
+`dashboard/` holds the interactive dashboard that accompanies the paper. It is a Shiny app compiled to WebAssembly with [shinylive](https://posit-dev.github.io/r-shinylive/), so it runs entirely in the browser with no server and no installation. It reproduces the analysis figures from the paper and lets you reconfigure the variables behind each view, filter the catalogue along every annotated feature, and read the 1,997 records as a searchable table.
+
+The app reads a single flat CSV, which joins the FAIR results onto the catalogue. Build it before running the app:
+
+```bash
+cd dashboard
+python ../download_data.py
+python build_dashboard_data.py
+```
+
+Then open `app.R` in RStudio and click **Run App**, or export the static site with `shinylive::export(".", "site")`. `dashboard/DEPLOY.md` covers hosting.
+
+## Sampling
+
+`sampling/draw_samples.py` draws the three samples the paper reports, all from a single fixed seed:
+
+| Subcommand | Sample |
+| --- | --- |
+| `feature-agreement` | The 234-record reliability sample for the feature annotation, in two strata |
+| `pilot` | The 20-record pilot set used to refine the annotation codebook |
+| `rejected` | The 300-record stratified verification sample from the rejected stratum, which bounds the recall of the pipeline |
+
+Each subcommand refuses to overwrite an existing annotation workbook unless `--force` is given, and writes a timestamped backup when it does.
+
+`sampling/finalize_annotation_workbook.py` prepares the drawn workbook for the
+second annotator: it formats the `paper` column as text, since the codebook asks for
+the identifier rather than a boolean and Excel would otherwise coerce it, and it
+restores the full Kaggle descriptions, whose catalogue entries are capped at 80
+characters. It refuses to run once any label cell is filled, so an annotation in
+progress cannot be overwritten. The Kaggle descriptions come from a working file
+that is not part of the data record. Without it the step is skipped and the
+descriptions stay as the catalogue holds them.
+
+## Reliability of the feature annotation
+
+The features in the catalogue were annotated by one person. A second annotator relabelled the 234-record reliability sample independently, working from the annotation codebook and blind to the existing labels. `annotation/feature_agreement.py` quantifies how far the two agree: Cohen's Kappa with asymptotic 95 % confidence intervals for the binary and categorical features, ICC(2,1) on log10(`number_posts`), and a confirmation rate for `synthetic`, which occurs too rarely in the sample to support a Kappa.
+
+```bash
+python3 download_data.py                    # fetches the reliability files as well
+python3 annotation/feature_agreement.py
+python3 annotation/feature_agreement.py --json data/feature_agreement_results.json
+```
+
+It reads `data/dataset_feature_agreement_key.csv` for the first annotator and `data/dataset_feature_agreement_ta.xlsx` for the second, and prints the full table followed by every individual disagreement. Records the second annotator could not open are excluded pairwise by default. `--missing disagree` re-runs the analysis counting them as disagreements instead, which is the conservative bound reported alongside the main figures.
+
+Kappa runs from 0.890 for `license` down to 0.561 for `task`, and ICC(2,1) is 0.925. The published output of this script is part of the Zenodo record as `feature_agreement_results.txt` and `feature_agreement_results.json`, and the record's README carries the full table.
 
 ## Setup
 

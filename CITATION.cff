@@ -2,13 +2,10 @@
 # GitHub renders this as a "Cite this repository" button, and Zenodo reads it
 # when archiving a release.
 #
-# BEFORE THE FIRST PUBLIC RELEASE, replace every PLACEHOLDER below:
-#   - authors: real names, affiliations and ORCIDs
-#   - repository-code: the GitHub URL
-#   - identifiers: the Zenodo concept DOI of this repository
-#   - references: the paper DOI and the Zenodo DOI of the data record
-# Until then the placeholders keep the file valid without naming anyone, so the
-# repository can be prepared while the manuscript is under double-blind review.
+# Authors and repository URL are filled in. Still to add once they exist:
+#   - authors: ORCIDs (commented out below)
+#   - identifiers: the Zenodo concept DOI of this repository, after the release
+#   - references: the paper DOI, after acceptance
 
 cff-version: 1.2.0
 message: >-
@@ -25,13 +22,20 @@ date-released: "2026-08-04"
 license: MIT
 
 authors:
-  - name: "PLACEHOLDER — anonymised for double-blind review"
-    # given-names: ""
-    # family-names: ""
-    # affiliation: ""
+  - given-names: "Janina"
+    family-names: "Lütke Stockdiek"
+    affiliation: "Computational Social Science & Systems Analysis, University of Münster, Germany"
+    # orcid: "https://orcid.org/0000-0000-0000-0000"
+  - given-names: "Michael"
+    family-names: "Vogt"
+    affiliation: "Computational Social Science & Systems Analysis, University of Münster, Germany"
+    # orcid: "https://orcid.org/0000-0000-0000-0000"
+  - given-names: "Christian"
+    family-names: "Grimme"
+    affiliation: "Computational Social Science & Systems Analysis, University of Münster, Germany"
     # orcid: "https://orcid.org/0000-0000-0000-0000"
 
-repository-code: "PLACEHOLDER — https://github.com/<owner>/<repo>"
+repository-code: "https://github.com/Janina-LuetkeStockdiek/survey-sm-datasets"
 
 keywords:
   - social media
@@ -52,10 +56,15 @@ keywords:
 references:
   - type: article
     title: >-
-      A Survey on Publicly Available Text-Based English Social Media Datasets
-      From Online Data Sharing Repositories
+      Gotta catch 'em all FAIR -- Catalog and Data-Centric Survey of Social
+      Media Text Datasets in Open Repositories
     authors:
-      - name: "PLACEHOLDER — anonymised for double-blind review"
+      - given-names: "Janina"
+        family-names: "Lütke Stockdiek"
+      - given-names: "Michael"
+        family-names: "Vogt"
+      - given-names: "Christian"
+        family-names: "Grimme"
     year: 2026
     # doi: "PLACEHOLDER — paper DOI"
 
@@ -64,7 +73,12 @@ references:
       A Catalogue of Publicly Available English Text-Based Social Media Datasets
       from Fourteen Open Data Repositories
     authors:
-      - name: "PLACEHOLDER — anonymised for double-blind review"
+      - given-names: "Janina"
+        family-names: "Lütke Stockdiek"
+      - given-names: "Michael"
+        family-names: "Vogt"
+      - given-names: "Christian"
+        family-names: "Grimme"
     year: 2026
-    # doi: "10.5281/zenodo.PLACEHOLDER"
+    doi: "10.5281/zenodo.21704651"
     notes: The catalogue this code produces, published as a separate Zenodo record.

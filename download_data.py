@@ -22,9 +22,10 @@ from pathlib import Path
 
 import requests
 
-# Zenodo record holding the published catalogue. Replace the placeholder once the
-# record has been created; you can reserve the DOI before publishing.
-ZENODO_RECORD_ID = os.getenv("ZENODO_RECORD_ID", "")
+# Zenodo record holding the published catalogue, DOI 10.5281/zenodo.21704651.
+# The environment variable of the same name overrides it, which is how a draft or
+# a later version of the record is fetched instead.
+ZENODO_RECORD_ID = os.getenv("ZENODO_RECORD_ID", "21704651")
 
 ZENODO_API = "https://zenodo.org/api/records/{record_id}"
 DATA_DIR = Path(__file__).resolve().parent / "data"
@@ -34,9 +35,18 @@ DATA_DIR = Path(__file__).resolve().parent / "data"
 EXPECTED_FILES = [
     "dataset_relevant.csv",
     "dataset_initial.csv",
+    "fair_assessment.csv",
     "development_set.csv",
     "heldout_test_set.csv",
+    "dataset_feature_agreement_key.csv",
+    "dataset_feature_agreement_ta.xlsx",
+    "dataset_pilot_key.csv",
 ]
+
+# fuji_assessment.py and build_dashboard_data.py read the FAIR results under the
+# name they are written with locally, so the record's file is copied to that name
+# after the download.
+RENAME_AFTER_DOWNLOAD = {"fair_assessment.csv": "fair_fuji.csv"}
 
 
 def fetch_record(record_id: str, timeout: int = 30) -> dict:
@@ -113,6 +123,12 @@ def main() -> int:
         print(f"  fetching {name} ...")
         download_file(url, target)
         downloaded.append(name)
+
+    for source, alias in RENAME_AFTER_DOWNLOAD.items():
+        src, dst = DATA_DIR / source, DATA_DIR / alias
+        if src.exists() and (args.force or not dst.exists()):
+            dst.write_bytes(src.read_bytes())
+            print(f"  copied   {source} -> {alias}")
 
     missing = [f for f in EXPECTED_FILES if f not in downloaded]
     if missing:

@@ -26,6 +26,7 @@ from typing import Iterable, Optional
 
 import pandas as pd
 import requests
+from tqdm import tqdm
 
 from config import data_path
 from harvest_common import (
