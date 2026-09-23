@@ -29,7 +29,8 @@ from the Zenodo record. Re-run it only if you want to verify them. Re-running th
 | | |
 | --- | --- |
 | Catalogue (Zenodo record) | [10.5281/zenodo.21704651](https://doi.org/10.5281/zenodo.21704651) |
-| Interactive dashboard | https://sm-datasets-dashboard.netlify.app/ |
+| Interactive dashboard | https://janina-lsd.shinyapps.io/sm-datasets-dashboard/ |
+| Dashboard fallback (shinylive, in-browser, if the shinyapps.io hours run out) | https://sm-datasets-dashboard.netlify.app/ |
 
 The record holds these files:
 

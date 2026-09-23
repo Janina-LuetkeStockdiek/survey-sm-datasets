@@ -1,0 +1,10 @@
+name: sm-datasets-dashboard
+title:
+username: janina-lsd
+account: janina-lsd
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 17988650
+bundleId: 12594565
+url: https://janina-lsd.shinyapps.io/sm-datasets-dashboard/
+version: 1

@@ -1,9 +1,20 @@
 # Publishing the dashboard - anonymous vs. named
 
-> **Status for this project (2026-09-20): the submission is not blinded.** The
-> dashboard is live at https://sm-datasets-dashboard.netlify.app/ and that URL is
-> the one the manuscript prints, so it stays as it is. The anonymity sections
-> below are kept for reuse in a future blinded submission.
+> **Status for this project (2026-09-23): the submission is not blinded, and the
+> dashboard's primary hosting moved off Shinylive/WebAssembly.** It now runs as a
+> classic server-side Shiny app on shinyapps.io -- free plan, deployed with
+> `rsconnect::deployApp()`, no keep-alive ping, see the "Classic Shiny server"
+> section in README.md:
+>
+>     https://janina-lsd.shinyapps.io/sm-datasets-dashboard/
+>
+> The original Netlify/shinylive build below stays online as a fallback for when
+> the free monthly viewing hours on shinyapps.io run out, and both URLs are
+> printed in the manuscript:
+>
+>     https://sm-datasets-dashboard.netlify.app/
+>
+> The anonymity sections below are kept for reuse in a future blinded submission.
 
 > **This folder is not a deployment root.** `shinylive::export()` builds the app
 > from the folder holding `app.R` and its CSV, so run it from here rather than
