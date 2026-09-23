@@ -1,6 +1,6 @@
 # Social Media Dataset Survey — Pipeline
 
-Code accompanying *A Survey on Publicly Available Text-Based English Social Media Datasets From Online Data Sharing Repositories*.
+Code accompanying *Gotta catch 'em all FAIR – Catalog and Data-Centric Survey of Social Media Text Datasets in Open Repositories*.
 
 The pipeline queries fourteen open data repositories — Kaggle, Zenodo, GitHub, Figshare, Hugging Face, CESSDA and others — for publicly available, English, text-based social media datasets, filters the results with an LLM and a manual review, and analyses the resulting catalogue. From 7,291 retrieved records it produced a catalogue of 1,997 hand-annotated datasets.
 
